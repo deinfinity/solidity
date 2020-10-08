@@ -4,6 +4,7 @@
 Bugfixes:
  * SMTChecker: Fix lack of reporting potential violations when using only the CHC engine.
  * Code generator: Fix missing creation dependency tracking for abstract contracts.
+ * NatSpec: Fix internal error when inheriting return parameter documentation but the parameter names differ between base and inherited.
 
 
 ### 0.7.4 (2020-10-19)
