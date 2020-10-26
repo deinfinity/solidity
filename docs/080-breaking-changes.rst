@@ -15,6 +15,8 @@ This section lists changes where you have to modify your code
 and it does something else afterwards.
 
 * Explicit conversions from negative literals and literals larger than ``type(uint160).max`` to ``address`` are now disallowed.
+* Explicit conversions from literals to integer types behave the same as implicit conversion, i.e.,
+  the conversion is only allowed if the literal fits inside the corresponding integer type.
 * Exponentiation is right associative, i.e., the expression ``a**b**c`` is parsed as ``a**(b**c)``.
   Before 0.8.0, it was parsed as ``(a**b)**c``.
 

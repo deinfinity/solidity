@@ -1,7 +1,7 @@
 contract C {
     function f() public pure returns (uint8 x) {
         unchecked {
-            return uint8(0x166)**uint8(uint8(2)**uint8(8));
+            return uint8(0x16)**uint8(uint8(2)**uint8(8));
         }
     }
 }
