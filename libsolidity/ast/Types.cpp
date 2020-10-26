@@ -114,10 +114,14 @@ bool fitsPrecisionBase2(bigint const& _mantissa, uint32_t _expBase2)
 }
 
 /// Checks whether _value fits into IntegerType _type.
-BoolResult fitsIntegerType(bigint const& _value, IntegerType const& _type)
+BoolResult fitsIntegerType(bigint const& _value, IntegerType const& _type, bool _implicit)
 {
 	if (_value < 0 && !_type.isSigned())
-		return BoolResult::err("Cannot implicitly convert signed literal to unsigned type.");
+		return BoolResult::err(
+			string("Cannot ") +
+			(_implicit? "implicitly" : "explicitly") +
+			" convert signed literal to unsigned type."
+		);
 
 	if (_type.minValue() > _value || _value > _type.maxValue())
 		return BoolResult::err("Literal is too large to fit in " + _type.toString(false) + ".");
@@ -129,10 +133,14 @@ BoolResult fitsIntegerType(bigint const& _value, IntegerType const& _type)
 /// if _signed is true.
 bool fitsIntoBits(bigint const& _value, unsigned _bits, bool _signed)
 {
-	return fitsIntegerType(_value, *TypeProvider::integer(
-		_bits,
-		_signed ? IntegerType::Modifier::Signed : IntegerType::Modifier::Unsigned
-	));
+	return fitsIntegerType(
+		_value,
+		*TypeProvider::integer(
+			_bits,
+			_signed ? IntegerType::Modifier::Signed : IntegerType::Modifier::Unsigned
+		),
+		true
+	);
 }
 
 util::Result<TypePointers> transformParametersToExternal(TypePointers const& _parameters, bool _inLibrary)
@@ -937,7 +945,7 @@ BoolResult RationalNumberType::isImplicitlyConvertibleTo(Type const& _convertTo)
 		if (isFractional())
 			return false;
 		IntegerType const& targetType = dynamic_cast<IntegerType const&>(_convertTo);
-		return fitsIntegerType(m_value.numerator(), targetType);
+		return fitsIntegerType(m_value.numerator(), targetType, true);
 	}
 	case Category::FixedPoint:
 	{
@@ -968,9 +976,18 @@ BoolResult RationalNumberType::isExplicitlyConvertibleTo(Type const& _convertTo)
 	auto category = _convertTo.category();
 	if (category == Category::FixedBytes)
 		return false;
-	if (category == Category::Address)
+	else if (category == Category::Address)
+	{
 		if (isNegative() || isFractional() || integerType()->numBits() > 160)
 			return false;
+	}
+	else if (category == Category::Integer)
+	{
+		auto const& integerType = dynamic_cast<IntegerType const&>(_convertTo);
+		if (isFractional())
+			return false;
+		return fitsIntegerType(m_value.numerator(), integerType, false);
+	}
 
 	TypePointer mobType = mobileType();
 	return (mobType && mobType->isExplicitlyConvertibleTo(_convertTo));
