@@ -813,9 +813,7 @@ function keccak256(x1, x2, x3, x4, y1, y2, y3, y4) -> z1, z2, z3, z4 {
 
 function address() -> z1, z2, z3, z4 {
 	eth.getAddress(4:i32)
-	z2 := i64.and(bswap64(i64.load(0:i32)), 0x00000000ffffffff)
-	z3 := bswap64(i64.load(8:i32))
-	z4 := bswap64(i64.load(16:i32))
+	z2, z3, z4 := mload_address(0:i32)
 }
 function balance(x1, x2, x3, x4) -> z1, z2, z3, z4 {
 	mstore_address(0:i32, x1, x2, x3, x4)
@@ -832,12 +830,12 @@ function chainid() -> z1, z2, z3, z4 {
 	unreachable()
 }
 function origin() -> z1, z2, z3, z4 {
-	eth.getTxOrigin(0:i32)
-	z1, z2, z3, z4 := mload_internal(0:i32)
+	eth.getTxOrigin(4:i32)
+	z2, z3, z4 := mload_address(0:i32)
 }
 function caller() -> z1, z2, z3, z4 {
-	eth.getCaller(0:i32)
-	z1, z2, z3, z4 := mload_internal(0:i32)
+	eth.getCaller(4:i32)
+	z2, z3, z4 := mload_address(0:i32)
 }
 function callvalue() -> z1, z2, z3, z4 {
 	eth.getCallValue(0:i32)
@@ -928,8 +926,8 @@ function blockhash(x1, x2, x3, x4) -> z1, z2, z3, z4 {
 	}
 }
 function coinbase() -> z1, z2, z3, z4 {
-	eth.getBlockCoinbase(0:i32)
-	z1, z2, z3, z4 := mload_internal(0:i32)
+	eth.getBlockCoinbase(4:i32)
+	z2, z3, z4 := mload_address(0:i32)
 }
 function timestamp() -> z1, z2, z3, z4 {
 	z4 := eth.getBlockTimestamp()
@@ -1006,6 +1004,11 @@ function mload_internal(pos:i32) -> z1, z2, z3, z4 {
 	z2 := bswap64(i64.load(i32.add(pos, 8:i32)))
 	z3 := bswap64(i64.load(i32.add(pos, 16:i32)))
 	z4 := bswap64(i64.load(i32.add(pos, 24:i32)))
+}
+function mload_address(pos:i32) -> z2, z3, z4 {
+	z2 := i64.and(bswap64(i64.load(pos)), 0x00000000ffffffff)
+	z3 := bswap64(i64.load(i32.add(pos, 8:i32)))
+	z4 := bswap64(i64.load(i32.add(pos, 16:i32)))
 }
 function mstore(x1, x2, x3, x4, y1, y2, y3, y4) {
 	mstore_internal(to_internal_i32ptr(x1, x2, x3, x4), y1, y2, y3, y4)
